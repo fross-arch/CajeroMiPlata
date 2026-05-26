@@ -120,8 +120,7 @@ public class MenuApp {
     }
 
     private void menuTarjetaCredito(String usuario) {
-        boolean tcActiva = clienteRepository.findTarjetaCredito(usuario)
-                .map(tc -> tc.isActiva()).orElse(false);
+        boolean tcActiva = cuentaView.tieneTarjetaActiva(usuario);
 
         if (!tcActiva) {
             System.out.println("\nNo tienes una tarjeta de crédito activa.");
@@ -131,20 +130,24 @@ public class MenuApp {
             return;
         }
 
-        System.out.println("\n=== Tarjeta de Crédito ===");
-        System.out.println("  1. Ver saldo y cupo");
-        System.out.println("  2. Realizar compra");
-        System.out.println("  3. Pagar cuotas");
-        System.out.println("  4. Ver movimientos");
-        System.out.println("  5. Volver");
+        boolean enMenuTC = true;
+        while (enMenuTC) {
+            System.out.println("\n=== Tarjeta de Crédito ===");
+            System.out.println("  1. Ver saldo y cupo");
+            System.out.println("  2. Realizar compra");
+            System.out.println("  3. Pagar cuotas");
+            System.out.println("  4. Ver movimientos TC");
+            System.out.println("  5. Volver al menú principal");
 
-        int opcion = FormValidation.validateInt("Opción");
-        switch (opcion) {
-            case 1 -> cuentaView.verSaldo(usuario);
-            case 2 -> cuentaView.realizarCompra(usuario);
-            case 3 -> cuentaView.pagarCuotaTC(usuario);
-            case 4 -> cuentaView.verMovimientos(usuario);
-            default -> { /* volver */ }
+            int opcion = FormValidation.validateInt("Opción");
+            switch (opcion) {
+                case 1 -> { cuentaView.verSaldoTC(usuario); FormValidation.pausar(); }
+                case 2 -> cuentaView.realizarCompra(usuario);
+                case 3 -> cuentaView.pagarCuotaTC(usuario);
+                case 4 -> { cuentaView.verMovimientosTC(usuario); FormValidation.pausar(); }
+                case 5 -> enMenuTC = false;
+                default -> System.out.println("Opción no válida.");
+            }
         }
     }
 

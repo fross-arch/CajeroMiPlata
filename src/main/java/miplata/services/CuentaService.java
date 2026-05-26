@@ -18,4 +18,8 @@ public interface CuentaService {
     OperacionResultado pagarTotal(String usuario, int index, String cuentaOrigen);
     void verSaldo(String usuario);
     void verMovimientos(String usuario);
+    void verMovimientosTC(String usuario);
+    void verSaldoTC(String usuario);
+    boolean tieneTarjetaActiva(String usuario);
+
 }

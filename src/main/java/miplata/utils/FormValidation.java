@@ -77,4 +77,10 @@ public class FormValidation {
             }
         }
     }
+    public static void pausar() {
+        System.out.println("\nPresiona 1 para volver al menú.");
+        while (validateInt("Opción") != 1) {
+            System.out.println("  Presiona 1 para volver al menú.");
+        }
+    }
 }

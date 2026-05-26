@@ -29,6 +29,7 @@ public class CuentaView {
 
     public void verSaldo(String usuario) {
         cuentaService.verSaldo(usuario);
+        FormValidation.pausar();
     }
 
     // ── Depósito ─────────────────────────────────────────────────────────────
@@ -39,6 +40,7 @@ public class CuentaView {
         String tipo = (opcion == 2) ? "corriente" : "ahorros";
         double monto = FormValidation.validateDouble("Monto a depositar");
         System.out.println(cuentaService.depositar(usuario, tipo, monto));
+        FormValidation.pausar();
     }
 
     // ── Retiro ───────────────────────────────────────────────────────────────
@@ -49,6 +51,7 @@ public class CuentaView {
         String tipo = (opcion == 2) ? "corriente" : "ahorros";
         double monto = FormValidation.validateDouble("Monto a retirar");
         System.out.println(cuentaService.retirar(usuario, tipo, monto));
+        FormValidation.pausar();
     }
 
     // ── Transferir ───────────────────────────────────────────────────────────
@@ -60,6 +63,7 @@ public class CuentaView {
         String destinatario = FormValidation.validateString("Usuario destinatario");
         double monto = FormValidation.validateDouble("Monto a transferir");
         System.out.println(cuentaService.transferir(usuarioOrigen, tipo, destinatario, monto));
+        FormValidation.pausar();
     }
 
     // ── Traslado interno ─────────────────────────────────────────────────────
@@ -73,19 +77,22 @@ public class CuentaView {
         String destino = (opcionDestino == 2) ? "corriente" : "ahorros";
         double monto = FormValidation.validateDouble("Monto a trasladar");
         System.out.println(cuentaService.trasladarInterno(usuario, origen, destino, monto));
+        FormValidation.pausar();
     }
 
     // ── Movimientos ──────────────────────────────────────────────────────────
 
     public void verMovimientos(String usuario) {
         cuentaService.verMovimientos(usuario);
+        FormValidation.pausar();
     }
 
     // ── Cuenta Corriente ─────────────────────────────────────────────────────
 
     public void activarCuentaCorriente(String usuario) {
-        double monto = FormValidation.validateDouble("Monto a trasladar desde Ahorros para activar");
+        double monto = FormValidation.validateDouble("Monto a trasladar desde Cuenta de  Ahorros para activar");
         System.out.println(cuentaService.activarCuentaCorriente(usuario, monto));
+        FormValidation.pausar();
     }
 
     // ── Tarjeta de Crédito ───────────────────────────────────────────────────
@@ -93,6 +100,7 @@ public class CuentaView {
     public void activarTarjetaCredito(String usuario) {
         CreditCardTier tier = CreditCardTierSelector.selectTier();
         System.out.println(cuentaService.activarTarjetaCredito(usuario, tier));
+        FormValidation.pausar();
     }
 
     public void realizarCompra(String usuario) {
@@ -105,6 +113,7 @@ public class CuentaView {
         int[] mapaCuotas = {1, 2, 3, 6, 7, 12, 24};
         int cuotas = (opcion >= 1 && opcion <= 7) ? mapaCuotas[opcion - 1] : 1;
         System.out.println(cuentaService.realizarCompra(usuario, monto, cuotas));
+        FormValidation.pausar();
     }
 
     public void pagarCuotaTC(String usuario) {
@@ -145,5 +154,17 @@ public class CuentaView {
         } else {
             System.out.println(cuentaService.pagarCuota(usuario, indexReal, cuentaOrigen));
         }
+        FormValidation.pausar();
+    }
+
+    public void verMovimientosTC(String usuario) {
+        cuentaService.verMovimientosTC(usuario);
+    }
+
+    public void verSaldoTC(String usuario) {
+        cuentaService.verSaldoTC(usuario);
+    }
+    public boolean tieneTarjetaActiva(String usuario) {
+        return cuentaService.tieneTarjetaActiva(usuario);
     }
 }

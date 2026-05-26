@@ -298,7 +298,28 @@ public class CuentaServiceImpl implements CuentaService {
         if (tc != null && tc.isActiva())
             System.out.println("TC Disponible:     $" + tc.formatPesos(tc.getCupoDisponible()));
     }
+    public void verSaldoTC(String usuario) {
+        TarjetaCredito tc = getTarjetaCredito(usuario);
+        if (tc == null || !tc.isActiva()) {
+            System.out.println("No tienes una tarjeta de crédito activa.");
+            return;
+        }
+        System.out.println("\n=== Tarjeta de Crédito ===");
+        System.out.println("  Cupo total:       $" + tc.formatPesos(tc.getCupo()));
+        System.out.println("  Cupo disponible:  $" + tc.formatPesos(tc.getCupoDisponible()));
+        System.out.println("  Cupo usado:       $" + tc.formatPesos(tc.getCupo() - tc.getCupoDisponible()));
 
+        List<DeudaTC> activas = tc.getDeudasActivas();
+        if (!activas.isEmpty()) {
+            System.out.println("\n  Deudas activas:");
+            activas.forEach(d -> System.out.println("    - " + d));
+        }
+    }
+    @Override
+    public boolean tieneTarjetaActiva(String usuario) {
+        TarjetaCredito tc = getTarjetaCredito(usuario);
+        return tc != null && tc.isActiva();
+    }
     // ── Ver Movimientos ──────────────────────────────────────────────────────
 
     @Override
@@ -331,5 +352,12 @@ public class CuentaServiceImpl implements CuentaService {
 
     private TarjetaCredito getTarjetaCredito(String usuario) {
         return clienteRepository.findTarjetaCredito(usuario).orElse(null);
+    }
+
+    public void verMovimientosTC(String usuario) {
+        System.out.println("\n=== Movimientos — Tarjeta de Crédito ===");
+        List<Movimiento> movimientos = movimientoRepository.findByUsuarioYTipoCuenta(usuario, "TARJETA_CREDITO");
+        if (movimientos.isEmpty()) System.out.println("  Sin movimientos.");
+        else movimientos.forEach(m -> System.out.println("  " + m));
     }
 }

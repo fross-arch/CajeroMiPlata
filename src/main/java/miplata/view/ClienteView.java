@@ -16,6 +16,7 @@ public class ClienteView {
 
     public ClienteView(ClienteService clienteService) {
         this.clienteService = clienteService;
+
     }
 
     public void registrarCliente() {
@@ -23,6 +24,7 @@ public class ClienteView {
         Cliente cliente = clienteService.registrarCliente(saldoInicial);
         if (cliente != null) {
             System.out.println("Registro completado: " + cliente);
+            FormValidation.pausar();
         }
     }
 
