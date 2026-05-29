@@ -340,6 +340,38 @@ public class CuentaServiceImpl implements CuentaService {
         else tc.forEach(m -> System.out.println("  " + m));
     }
 
+    public void verMovimientosTC(String usuario) {
+        System.out.println("\n=== Movimientos — Tarjeta de Crédito ===");
+
+        // ERROR #8: mostrar primero el estado actual de la tarjeta (activación y deudas)
+        TarjetaCredito tc = getTarjetaCredito(usuario);
+        if (tc != null && tc.isActiva()) {
+            System.out.println("  Tarjeta activa | Cupo: $" + tc.formatPesos(tc.getCupo())
+                    + " | Disponible: $" + tc.formatPesos(tc.getCupoDisponible()));
+
+            List<DeudaTC> todasLasDeudas = tc.getDeudas();
+            if (!todasLasDeudas.isEmpty()) {
+                System.out.println("\n  Resumen de compras:");
+                for (int i = 0; i < todasLasDeudas.size(); i++) {
+                    DeudaTC d = todasLasDeudas.get(i);
+                    System.out.println("  " + (i + 1) + ". Fecha: " + d.getFecha()
+                            + " | Capital: $" + tc.formatPesos(d.getCapital())
+                            + " | Cuotas pagadas: " + d.getCuotasPagadas() + "/" + d.getCuotas()
+                            + " | Pendiente: $" + tc.formatPesos(d.getSaldoPendiente())
+                            + (d.isPagada() ? " [PAGADA]" : ""));
+                }
+            }
+        }
+
+        // Movimientos registrados en BD
+        System.out.println("\n  Historial de transacciones:");
+        List<Movimiento> movimientos = movimientoRepository.findByUsuarioYTipoCuenta(usuario, "TARJETA_CREDITO");
+        if (movimientos.isEmpty()) System.out.println("  Sin movimientos registrados.");
+        else movimientos.forEach(m -> System.out.println("  " + m));
+    }
+
+
+
     // ── Helpers privados ─────────────────────────────────────────────────────
 
     private CuentaAhorros getCuentaAhorros(String usuario) {
@@ -354,10 +386,5 @@ public class CuentaServiceImpl implements CuentaService {
         return clienteRepository.findTarjetaCredito(usuario).orElse(null);
     }
 
-    public void verMovimientosTC(String usuario) {
-        System.out.println("\n=== Movimientos — Tarjeta de Crédito ===");
-        List<Movimiento> movimientos = movimientoRepository.findByUsuarioYTipoCuenta(usuario, "TARJETA_CREDITO");
-        if (movimientos.isEmpty()) System.out.println("  Sin movimientos.");
-        else movimientos.forEach(m -> System.out.println("  " + m));
-    }
+
 }

@@ -5,7 +5,6 @@ import java.util.Scanner;
 
 /**
  * Utilidades de validación de entrada por consola.
- * Equivalente a CustomerFormValidation.java del proyecto Lucia.
  */
 public class FormValidation {
 
@@ -25,6 +24,15 @@ public class FormValidation {
         }
     }
 
+    // ERROR #4 / #7 / #10: valida que la opción esté dentro de un rango [min, max]
+    public static int validateIntRange(String prompt, int min, int max) {
+        while (true) {
+            int value = validateInt(prompt);
+            if (value >= min && value <= max) return value;
+            System.out.println("  Error: opción no válida. Elige entre " + min + " y " + max + ".");
+        }
+    }
+
     public static double validateDouble(String prompt) {
         while (true) {
             System.out.print(prompt + ": ");
@@ -40,14 +48,28 @@ public class FormValidation {
             }
         }
     }
+
     public static String validateString(String prompt) {
         while (true) {
             System.out.print(prompt + ": ");
             String value = sc.nextLine().trim();
-            if (!value.isEmpty()) {
+            if (!value.isEmpty()) return value;
+            System.out.println("  Error: el campo no puede estar vacío.");
+        }
+    }
+
+    // ERROR #1: contraseña con mínimo 4 caracteres
+    public static String validatePassword(String prompt) {
+        while (true) {
+            System.out.print(prompt + ": ");
+            String value = sc.nextLine().trim();
+            if (value.isEmpty()) {
+                System.out.println("  Error: el campo no puede estar vacío.");
+            } else if (value.length() < 4) {
+                System.out.println("  Error: la contraseña debe tener mínimo 4 caracteres.");
+            } else {
                 return value;
             }
-            System.out.println("  Error: el campo no puede estar vacío.");
         }
     }
 
@@ -64,6 +86,7 @@ public class FormValidation {
             }
         }
     }
+
     public static String validateNumerico(String prompt) {
         while (true) {
             System.out.print(prompt + ": ");
@@ -77,6 +100,7 @@ public class FormValidation {
             }
         }
     }
+
     public static void pausar() {
         System.out.println("\nPresiona 1 para volver al menú.");
         while (validateInt("Opción") != 1) {

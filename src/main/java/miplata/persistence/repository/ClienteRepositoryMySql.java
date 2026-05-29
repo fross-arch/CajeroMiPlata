@@ -46,24 +46,22 @@ public class ClienteRepositoryMySql implements ClientePersistencePort {
 
     @Override
     public Optional<Cliente> findByUsuario(String usuario) {
-
-        String sql = "SELECT * FROM cliente WHERE usuario = ?";
+        // ERROR #2: BINARY hace la comparación case-sensitive
+        String sql = "SELECT * FROM cliente WHERE BINARY usuario = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
-
             ps.setString(1, usuario);
             ResultSet rs = ps.executeQuery();
-
             if (rs.next()) {
                 return Optional.of(rowMapper.mapRow(rs));
             }
-
         } catch (SQLException e) {
             throw new RuntimeException("Error al buscar el cliente", e);
         }
 
         return Optional.empty();
     }
+
 
     @Override
     public boolean existeUsuario(String usuario) {

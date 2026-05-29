@@ -10,11 +10,6 @@ import miplata.utils.FormValidation;
 
 import java.util.List;
 
-/**
- * Vista de operaciones bancarias — panel del cajero/cliente.
- * Traduce los módulos JS (moduloAhorros, moduloCorriente, moduloTC, etc.)
- * al patrón de vista con consola.
- */
 public class CuentaView {
 
     private final CuentaService cuentaService;
@@ -35,8 +30,20 @@ public class CuentaView {
     // ── Depósito ─────────────────────────────────────────────────────────────
 
     public void depositar(String usuario) {
-        System.out.println("¿En qué cuenta desea depositar?  1. Ahorros  2. Corriente");
-        int opcion = FormValidation.validateInt("Opción");
+        // ERROR #3: mostrar corriente solo si está activa
+        boolean corrienteActiva = clienteRepository.findCuentaCorriente(usuario)
+                .map(c -> c.isActiva()).orElse(false);
+
+        int opcion;
+        if (corrienteActiva) {
+            System.out.println("¿En qué cuenta desea depositar?  1. Ahorros  2. Corriente");
+            // ERROR #4: usar validateIntRange para forzar opción válida
+            opcion = FormValidation.validateIntRange("Opción", 1, 2);
+        } else {
+            System.out.println("Depositando en Cuenta de Ahorros.");
+            opcion = 1;
+        }
+
         String tipo = (opcion == 2) ? "corriente" : "ahorros";
         double monto = FormValidation.validateDouble("Monto a depositar");
         System.out.println(cuentaService.depositar(usuario, tipo, monto));
@@ -46,8 +53,20 @@ public class CuentaView {
     // ── Retiro ───────────────────────────────────────────────────────────────
 
     public void retirar(String usuario) {
-        System.out.println("¿De qué cuenta desea retirar?  1. Ahorros  2. Corriente");
-        int opcion = FormValidation.validateInt("Opción");
+        // ERROR #3: mostrar corriente solo si está activa
+        boolean corrienteActiva = clienteRepository.findCuentaCorriente(usuario)
+                .map(c -> c.isActiva()).orElse(false);
+
+        int opcion;
+        if (corrienteActiva) {
+            System.out.println("¿De qué cuenta desea retirar?  1. Ahorros  2. Corriente");
+            // ERROR #4: usar validateIntRange para forzar opción válida
+            opcion = FormValidation.validateIntRange("Opción", 1, 2);
+        } else {
+            System.out.println("Retirando de Cuenta de Ahorros.");
+            opcion = 1;
+        }
+
         String tipo = (opcion == 2) ? "corriente" : "ahorros";
         double monto = FormValidation.validateDouble("Monto a retirar");
         System.out.println(cuentaService.retirar(usuario, tipo, monto));
@@ -57,8 +76,20 @@ public class CuentaView {
     // ── Transferir ───────────────────────────────────────────────────────────
 
     public void transferir(String usuarioOrigen) {
-        System.out.println("¿Desde qué cuenta?  1. Ahorros  2. Corriente");
-        int opcion = FormValidation.validateInt("Opción");
+        // ERROR #3: mostrar corriente solo si está activa
+        boolean corrienteActiva = clienteRepository.findCuentaCorriente(usuarioOrigen)
+                .map(c -> c.isActiva()).orElse(false);
+
+        int opcion;
+        if (corrienteActiva) {
+            System.out.println("¿Desde qué cuenta?  1. Ahorros  2. Corriente");
+            // ERROR #4: usar validateIntRange para forzar opción válida
+            opcion = FormValidation.validateIntRange("Opción", 1, 2);
+        } else {
+            System.out.println("Transfiriendo desde Cuenta de Ahorros.");
+            opcion = 1;
+        }
+
         String tipo = (opcion == 2) ? "corriente" : "ahorros";
         String destinatario = FormValidation.validateString("Usuario destinatario");
         double monto = FormValidation.validateDouble("Monto a transferir");
@@ -70,9 +101,9 @@ public class CuentaView {
 
     public void trasladarInterno(String usuario) {
         System.out.println("Desde:  1. Ahorros  2. Corriente");
-        int opcionOrigen = FormValidation.validateInt("Opción");
+        int opcionOrigen = FormValidation.validateIntRange("Opción", 1, 2);
         System.out.println("Hacia:  1. Ahorros  2. Corriente");
-        int opcionDestino = FormValidation.validateInt("Opción");
+        int opcionDestino = FormValidation.validateIntRange("Opción", 1, 2);
         String origen = (opcionOrigen == 2) ? "corriente" : "ahorros";
         String destino = (opcionDestino == 2) ? "corriente" : "ahorros";
         double monto = FormValidation.validateDouble("Monto a trasladar");
@@ -90,7 +121,15 @@ public class CuentaView {
     // ── Cuenta Corriente ─────────────────────────────────────────────────────
 
     public void activarCuentaCorriente(String usuario) {
-        double monto = FormValidation.validateDouble("Monto a trasladar desde Cuenta de  Ahorros para activar");
+        // ERROR #6: verificar si ya está activa antes de pedir monto
+        boolean yaActiva = clienteRepository.findCuentaCorriente(usuario)
+                .map(c -> c.isActiva()).orElse(false);
+        if (yaActiva) {
+            System.out.println("  Tu cuenta corriente ya se encuentra activa.");
+            FormValidation.pausar();
+            return;
+        }
+        double monto = FormValidation.validateDouble("Monto a trasladar desde Cuenta de Ahorros para activar");
         System.out.println(cuentaService.activarCuentaCorriente(usuario, monto));
         FormValidation.pausar();
     }
@@ -105,13 +144,24 @@ public class CuentaView {
 
     public void realizarCompra(String usuario) {
         double monto = FormValidation.validateDouble("Valor de la compra");
+
+        // ERROR #11: verificar cupo antes de pedir cuotas
+        TarjetaCredito tc = clienteRepository.findTarjetaCredito(usuario).orElse(null);
+        if (tc == null || monto > tc.getCupoDisponible()) {
+            System.out.println("  Compra no aprobada. Cupo disponible insuficiente" +
+                    (tc != null ? ": $" + tc.formatPesos(tc.getCupoDisponible()) : "."));
+            FormValidation.pausar();
+            return;
+        }
+
+        // ERROR #7: usar validateIntRange para forzar opción de cuotas válida
         System.out.println("Cuotas disponibles:");
         System.out.println("  1. 1 cuota (sin interés)   2. 2 cuotas (sin interés)");
         System.out.println("  3. 3 cuotas (1.9%/mes)     4. 6 cuotas (1.9%/mes)");
         System.out.println("  5. 7 cuotas (2.3%/mes)     6. 12 cuotas (2.3%/mes)   7. 24 cuotas (2.3%/mes)");
-        int opcion = FormValidation.validateInt("Opción");
+        int opcion = FormValidation.validateIntRange("Opción", 1, 7);
         int[] mapaCuotas = {1, 2, 3, 6, 7, 12, 24};
-        int cuotas = (opcion >= 1 && opcion <= 7) ? mapaCuotas[opcion - 1] : 1;
+        int cuotas = mapaCuotas[opcion - 1];
         System.out.println(cuentaService.realizarCompra(usuario, monto, cuotas));
         FormValidation.pausar();
     }
@@ -127,27 +177,28 @@ public class CuentaView {
         List<DeudaTC> todasLasDeudas = tc.getDeudas();
         List<DeudaTC> activas = tc.getDeudasActivas();
 
-        // Mostrar con numeración pero guardar el índice real
         for (int i = 0; i < activas.size(); i++) {
             System.out.println("  " + (i + 1) + ". " + activas.get(i));
         }
 
-        System.out.println("(Las deudas están numeradas desde 1)");
-        int seleccion = FormValidation.validateInt("Número de la deuda a pagar") - 1;
-        if (seleccion < 0 || seleccion >= activas.size()) {
-            System.out.println("Número de deuda inválido.");
-            return;
+        // ERROR #9: bucle hasta elegir un número de deuda válido
+        int seleccion;
+        while (true) {
+            seleccion = FormValidation.validateInt("Número de la deuda a pagar") - 1;
+            if (seleccion >= 0 && seleccion < activas.size()) break;
+            System.out.println("  Error: número de deuda inválido. Elige entre 1 y " + activas.size() + ".");
         }
 
-        // Obtener el índice real en la lista completa
         int indexReal = todasLasDeudas.indexOf(activas.get(seleccion));
 
+        // ERROR #10: usar validateIntRange para forzar opción de cuenta válida
         System.out.println("¿Pagar desde?  1. Ahorros  2. Corriente");
-        int opcion = FormValidation.validateInt("Opción");
-        String cuentaOrigen = (opcion == 2) ? "corriente" : "ahorros";
+        int opcionCuenta = FormValidation.validateIntRange("Opción", 1, 2);
+        String cuentaOrigen = (opcionCuenta == 2) ? "corriente" : "ahorros";
 
+        // ERROR #10: usar validateIntRange para forzar opción de tipo de pago válida
         System.out.println("¿Tipo de pago?  1. Pagar una cuota  2. Pagar total");
-        int tipoPago = FormValidation.validateInt("Opción");
+        int tipoPago = FormValidation.validateIntRange("Opción", 1, 2);
 
         if (tipoPago == 2) {
             System.out.println(cuentaService.pagarTotal(usuario, indexReal, cuentaOrigen));
@@ -164,6 +215,7 @@ public class CuentaView {
     public void verSaldoTC(String usuario) {
         cuentaService.verSaldoTC(usuario);
     }
+
     public boolean tieneTarjetaActiva(String usuario) {
         return cuentaService.tieneTarjetaActiva(usuario);
     }
