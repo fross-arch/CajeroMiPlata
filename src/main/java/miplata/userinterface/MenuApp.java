@@ -6,28 +6,34 @@ import miplata.services.ClienteService;
 import miplata.utils.FormValidation;
 import miplata.view.ClienteView;
 import miplata.view.CuentaView;
+import miplata.view.admin.AdminView;
 
 import java.util.Optional;
 import java.util.Scanner;
 
 /**
- * Menú principal de la aplicación — orquesta los flujos de usuario.
- * Equivalente al MenuApp.java del proyecto Lucia.
+ * Menú principal de la aplicación — orquesta los flujos de usuario y admin.
  */
 public class MenuApp {
+
+    private static final String ADMIN_USER = "admin";
+    private static final String ADMIN_PASS = "admin123";
 
     private final ClienteView clienteView;
     private final CuentaView cuentaView;
     private final ClienteService clienteService;
     private final ClienteRepository clienteRepository;
+    private final AdminView adminView;
     private final Scanner sc = new Scanner(System.in);
 
     public MenuApp(ClienteView clienteView, CuentaView cuentaView,
-                   ClienteService clienteService, ClienteRepository clienteRepository) {
+                   ClienteService clienteService, ClienteRepository clienteRepository,
+                   AdminView adminView) {
         this.clienteView = clienteView;
         this.cuentaView = cuentaView;
         this.clienteService = clienteService;
         this.clienteRepository = clienteRepository;
+        this.adminView = adminView;
     }
 
     public void showMainMenu() {
@@ -40,13 +46,15 @@ public class MenuApp {
         while (running) {
             System.out.println("\n  1. Registrarse");
             System.out.println("  2. Iniciar Sesión");
-            System.out.println("  3. Salir");
+            System.out.println("  3. Panel Administrador");
+            System.out.println("  4. Salir");
             int opcion = FormValidation.validateInt("Seleccione una opción");
 
             switch (opcion) {
                 case 1 -> clienteView.registrarCliente();
                 case 2 -> iniciarSesion();
-                case 3 -> {
+                case 3 -> iniciarSesionAdmin();
+                case 4 -> {
                     System.out.println("¡Hasta pronto!");
                     running = false;
                 }
@@ -54,6 +62,8 @@ public class MenuApp {
             }
         }
     }
+
+    // ── Login cliente ────────────────────────────────────────────────────────
 
     private void iniciarSesion() {
         int intentos = 0;
@@ -80,6 +90,34 @@ public class MenuApp {
         System.out.println("\n Demasiados intentos fallidos. El sistema se cerrará por seguridad.");
         System.exit(0);
     }
+
+    // ── Login admin ──────────────────────────────────────────────────────────
+
+    private void iniciarSesionAdmin() {
+        System.out.println("\n  === Acceso Administrador ===");
+        int intentos = 0;
+
+        while (intentos < 3) {
+            String usuario = FormValidation.validateString("Usuario admin");
+            String password = FormValidation.validateString("Contraseña admin");
+
+            if (ADMIN_USER.equals(usuario) && ADMIN_PASS.equals(password)) {
+                System.out.println("  Acceso concedido. Bienvenido, Administrador.");
+                adminView.mostrarMenuAdmin();
+                return;
+            }
+
+            intentos++;
+            int restantes = 3 - intentos;
+            if (restantes > 0) {
+                System.out.println("  Credenciales incorrectas. Intentos restantes: " + restantes);
+            }
+        }
+
+        System.out.println("  Acceso denegado. Demasiados intentos fallidos.");
+    }
+
+    // ── Panel cajero (cliente) ───────────────────────────────────────────────
 
     private void showPanelCajero(String usuario) {
         boolean sesionActiva = true;
@@ -148,22 +186,6 @@ public class MenuApp {
                 case 5 -> enMenuTC = false;
                 default -> System.out.println("Opción no válida.");
             }
-        }
-    }
-
-    // ── Menú admin (para visualizar todos los clientes) ──────────────────────
-
-    public void showMenuAdmin() {
-        System.out.println("\n=== Panel Administrador ===");
-        System.out.println("  1. Ver todos los clientes");
-        System.out.println("  2. Eliminar cliente");
-        System.out.println("  3. Volver");
-
-        int opcion = FormValidation.validateInt("Opción");
-        switch (opcion) {
-            case 1 -> clienteView.mostrarTodosLosClientes();
-            case 2 -> clienteView.eliminarCliente();
-            default -> { /* volver */ }
         }
     }
 }

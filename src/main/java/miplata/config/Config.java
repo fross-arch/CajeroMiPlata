@@ -15,10 +15,13 @@ import miplata.services.outputport.CuentaAhorrosPersistencePort;
 import miplata.services.outputport.CuentaCorrientePersistencePort;
 import miplata.services.outputport.TarjetaCreditoPersistencePort;
 import miplata.services.outputport.MovimientoPersistencePort;
-import java.sql.Connection;
 import miplata.services.outputport.DeudaTCPersistencePort;
-import miplata.persistence.mapper.DeudaTCRowMapper;
-import miplata.persistence.repository.DeudaTCRepositoryMySql;
+import miplata.services.admin.AdminService;
+import miplata.services.admin.AdminServiceImpl;
+import miplata.view.admin.AdminView;
+
+import java.sql.Connection;
+
 public class Config {
 
     public static MenuApp createMenuApp() {
@@ -42,18 +45,31 @@ public class Config {
         MovimientoPersistencePort movimientoRepository = new MovimientoRepositoryMySql(connection, movimientoRowMapper);
         DeudaTCPersistencePort deudaTCRepository = new DeudaTCRepositoryMySql(connection, deudaTCRowMapper);
 
-        // 4. Repositorio en memoria para las cuentas
+        // 4. Repositorio en memoria para las cuentas de sesión
         ClienteRepository clienteRepositoryMemoria = new ClienteRepository();
 
-        // 5. Servicios
-        ClienteService clienteService = new ClienteServiceImpl(clienteRepository, clienteRepositoryMemoria, cuentaAhorrosRepository, cuentaCorrienteRepository, tarjetaCreditoRepository, deudaTCRepository);
-        CuentaService cuentaService = new CuentaServiceImpl(clienteRepositoryMemoria, clienteRepository, cuentaAhorrosRepository, cuentaCorrienteRepository, tarjetaCreditoRepository, movimientoRepository, deudaTCRepository);
+        // 5. Servicios de negocio
+        ClienteService clienteService = new ClienteServiceImpl(
+                clienteRepository, clienteRepositoryMemoria,
+                cuentaAhorrosRepository, cuentaCorrienteRepository,
+                tarjetaCreditoRepository, deudaTCRepository);
 
-        // 6. Vistas
+        CuentaService cuentaService = new CuentaServiceImpl(
+                clienteRepositoryMemoria, clienteRepository,
+                cuentaAhorrosRepository, cuentaCorrienteRepository,
+                tarjetaCreditoRepository, movimientoRepository, deudaTCRepository);
+
+        // 6. Servicio y vista de administración
+        AdminService adminService = new AdminServiceImpl(
+                clienteRepository, cuentaAhorrosRepository, cuentaCorrienteRepository,
+                tarjetaCreditoRepository, deudaTCRepository, movimientoRepository);
+        AdminView adminView = new AdminView(adminService);
+
+        // 7. Vistas del cliente
         ClienteView clienteView = new ClienteView(clienteService);
         CuentaView cuentaView = new CuentaView(cuentaService, clienteRepositoryMemoria);
 
-        // 7. Menú principal
-        return new MenuApp(clienteView, cuentaView, clienteService, clienteRepositoryMemoria);
+        // 8. Menú principal
+        return new MenuApp(clienteView, cuentaView, clienteService, clienteRepositoryMemoria, adminView);
     }
 }
